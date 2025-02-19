@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS - Documents</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        h2, h3 {
+            text-align: center;
+            color: #6a11cb;
+            margin-bottom: 10px;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group input, .form-group button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .form-group input {
+            background-color: #f1f1f1;
+        }
+
+        .form-group button {
+            background-color: #6a11cb;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .form-group button:hover {
+            background-color: #2575fc;
+            transform: translateY(-2px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #6a11cb;
+            color: white;
+        }
+
+        .alert {
+            padding: 10px;
+            background-color: #f9c74f;
+            color: #856404;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        .table-container {
+            margin-top: 20px;
+        }
+
+        .logout-btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 12px;
+            background-color: #ff4d4d;
+            color: white;
+            font-size: 16px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: #ff1a1a;
+        }
+
+        /* Responsive design for small screens */
+        @media (max-width: 768px) {
+            .container {
+                width: 90%;
+            }
+
+            .form-group input, .form-group button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Documents Management</h2>
+
+        <!-- Add New Document Form -->
+        <h3>Add New Document</h3>
+        <form id="addDocumentForm">
+            <div class="form-group">
+                <input type="text" id="documentId" placeholder="Document ID" required>
+            </div>
+            <div class="form-group">
+                <input type="text" id="employeeId" placeholder="Employee ID" required>
+            </div>
+            <div class="form-group">
+                <input type="text" id="documentType" placeholder="Document Type" required>
+            </div>
+            <div class="form-group">
+                <button type="submit">Add Document</button>
+            </div>
+        </form>
+
+        <!-- Get Document Form -->
+        <h3>Get Document Details</h3>
+        <div class="form-group">
+            <input type="text" id="getDocumentId" placeholder="Enter Document ID">
+            <button onclick="getDocument()">Get Document</button>
+        </div>
+
+        <!-- Update Document Form -->
+        <h3>Update Document</h3>
+        <div class="form-group">
+            <input type="text" id="updateDocumentId" placeholder="Document ID" required>
+        </div>
+        <div class="form-group">
+            <input type="text" id="updateDocumentType" placeholder="New Document Type" required>
+        </div>
+        <div class="form-group">
+            <button onclick="updateDocument()">Update Document</button>
+        </div>
+
+        <!-- Delete Document Form -->
+        <h3>Delete Document</h3>
+        <div class="form-group">
+            <input type="text" id="deleteDocumentId" placeholder="Document ID">
+            <button onclick="deleteDocument()">Delete Document</button>
+        </div>
+
+        <div class="table-container">
+            <h3>Documents List</h3>
+            <table id="documentTable">
+                <thead>
+                    <tr>
+                        <th>Document ID</th>
+                        <th>Employee ID</th>
+                        <th>Document Type</th>
+                        
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <button class="logout-btn" onclick="logout()">Logout</button>
+
+        <div id="alertMessage" class="alert" style="display: none;"></div>
+    </div>
+        <!-- Add this div to display raw API response -->
+        <div id="rawApiResponse" style="margin-top: 20px; padding: 10px; background-color: #e9ecef; border: 1px solid #dee2e6; border-radius: 5px;">
+            <strong>Raw API Response:</strong>
+            <pre id="rawResponseContent" style="white-space: pre-wrap; word-wrap: break-word;"></pre>
+    </div>
+
+
+    <script>
+        const apiEndpoint = 'https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/Documents'; // Correct API endpoint
+
+        // Function to display raw API response
+function displayRawResponse(data) {
+    const rawResponseContent = document.getElementById('rawResponseContent');
+    rawResponseContent.textContent = JSON.stringify(data, null, 2);
+}
+
+// Modified Add Document function
+document.getElementById('addDocumentForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const documentId = document.getElementById('documentId').value;
+    const employeeId = document.getElementById('employeeId').value;
+    const documentType = document.getElementById('documentType').value;
+    
+
+    const payload = {
+        operation: 'POST',
+        table_name: 'Documents',
+        body: {
+            document_id: documentId,
+            employee_id: employeeId,
+            document_type: documentType,
+            
+        }
+    };
+
+    try {
+        const response = await fetch('https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/Documents', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        displayRawResponse(data); // Display raw response
+        if (response.ok) {
+            alert('Document added successfully');
+        } else {
+            showAlert(data.message || 'Failed to add document.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Failed to add document.');
+    }
+});
+
+// Modified Get Document function
+async function getDocument() {
+    const documentId = document.getElementById('getDocumentId').value;
+    const payload = {
+        operation: 'GET',
+        table_name: 'Documents',
+        key: { document_id: documentId }
+    };
+
+    try {
+        const response = await fetch('https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/Documents', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        displayRawResponse(data); // Display raw response
+        if (response.ok && data.Item) {
+            const documentTable = document.getElementById('documentTable').getElementsByTagName('tbody')[0];
+            documentTable.innerHTML = `
+                <tr>
+                    <td>${data.Item.document_id}</td>
+                    <td>${data.Item.employee_id}</td>
+                    <td>${data.Item.document_type}</td>
+                    
+                </tr>
+            `;
+        } else {
+            showAlert(data.message || 'Document not found.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Failed to fetch document.');
+    }
+}
+
+// Similar modifications for Update Document and Delete Document functions
+async function updateDocument() {
+    const documentId = document.getElementById('updateDocumentId').value;
+    const documentType = document.getElementById('updateDocumentType').value;
+    
+
+    const payload = {
+        operation: 'PUT',
+        table_name: 'Documents',
+        key: { document_id: documentId },
+        updates: {
+            document_type: documentType,
+                    }
+    };
+
+    try {
+        const response = await fetch('https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/Documents', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        displayRawResponse(data); // Display raw response
+        if (response.ok) {
+            alert('Document updated successfully');
+        } else {
+            showAlert(data.message || 'Failed to update document.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Failed to update document.');
+    }
+}
+
+async function deleteDocument() {
+    const documentId = document.getElementById('deleteDocumentId').value;
+
+    const payload = {
+        operation: 'DELETE',
+        table_name: 'Documents',
+        key: { document_id: documentId }
+    };
+
+    try {
+        const response = await fetch('https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/Documents', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        displayRawResponse(data); // Display raw response
+        if (response.ok) {
+            alert('Document deleted successfully');
+        } else {
+            showAlert(data.message || 'Failed to delete document.');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('Failed to delete document.');
+    }
+}
+
+
+        // Logout function
+        function logout() {
+            sessionStorage.removeItem('authToken');
+            window.location.href = 'logged_out.html';
+        }
+    </script>
+    <script src="auth.js"></script>
+</body>
+</html>

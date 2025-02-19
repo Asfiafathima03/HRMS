@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS - Leave Requests</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f7f7f7; margin: 0; padding: 0; }
+        .container { width: 85%; max-width: 1200px; margin: 30px auto; background-color: white; border-radius: 8px; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1); padding: 40px; }
+        h2, h3 { text-align: center; }
+        form, .action-buttons { display: flex; flex-direction: column; gap: 15px; max-width: 500px; margin: 0 auto; }
+        input, button { padding: 14px; font-size: 16px; border-radius: 5px; }
+        table { width: 100%; margin-top: 40px; border-collapse: collapse; }
+        th, td { padding: 15px; text-align: left; border: 1px solid #ddd; }
+        th { background-color: #2980b9; color: white; }
+        td { background-color: #f9f9f9; }
+        #apiResponse { margin-top: 20px; padding: 10px; border: 1px solid #ddd; background-color: #f1f1f1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Leave Requests Management</h2>
+
+        <h3>Add Leave Request</h3>
+        <form id="addLeaveRequestForm">
+            <input type="text" id="leaveRequestId" placeholder="Request ID" required>
+            <input type="text" id="leaveEmployeeId" placeholder="Employee ID" required>
+            <input type="date" id="leaveStartDate" placeholder="Start Date" required>
+            <input type="date" id="leaveEndDate" placeholder="End Date" required>
+            <input type="text" id="leaveReason" placeholder="Reason" required>
+            <button type="submit">Add Leave Request</button>
+        </form>
+
+        <h3>Get Leave Request</h3>
+        <div class="action-buttons">
+            <input type="text" id="getLeaveRequestId" placeholder="Enter Request ID">
+            <button id="getLeaveRequestButton">Get Request</button>
+        </div>
+
+        <h3>Update Leave Request</h3>
+        <div class="action-buttons">
+            <input type="text" id="updateLeaveRequestId" placeholder="Request ID" required>
+            <input type="text" id="updateLeaveStatus" placeholder="New Status (e.g., Approved, Rejected)" required>
+            <button id="updateLeaveRequestButton">Update Request</button>
+        </div>
+
+        <h3>Delete Leave Request</h3>
+        <div class="action-buttons">
+            <input type="text" id="deleteLeaveRequestId" placeholder="Request ID">
+            <button id="deleteLeaveRequestButton">Delete Request</button>
+        </div>
+
+        <h3>Leave Requests</h3>
+        <table id="leaveRequestTable">
+            <thead>
+                <tr>
+                    <th>Request ID</th>
+                    <th>Employee ID</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <div id="apiResponse">Raw API Response will appear here...</div>
+    </div>
+
+    <script>
+        const leaveApiUrl = 'https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/LeaveRequests';
+
+        function displayApiResponse(response) {
+            document.getElementById('apiResponse').textContent = JSON.stringify(response, null, 2);
+        }
+
+        // Add Leave Request
+        document.getElementById('addLeaveRequestForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const leaveRequest = {
+                request_id: document.getElementById('leaveRequestId').value,
+                employee_id: document.getElementById('leaveEmployeeId').value,
+                start_date: document.getElementById('leaveStartDate').value,
+                end_date: document.getElementById('leaveEndDate').value,
+                reason: document.getElementById('leaveReason').value,
+                status: 'Pending'
+            };
+            try {
+                const response = await fetch('https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/LeaveRequests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'POST',
+                        table_name: 'LeaveRequests',
+                        body: leaveRequest
+                    })
+                });
+                const data = await response.json();
+                displayApiResponse(data);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+
+        // Get Leave Request
+document.getElementById('getLeaveRequestButton').addEventListener('click', async function () {
+    const requestId = document.getElementById('getLeaveRequestId').value;
+    try {
+        const response = await fetch('https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/LeaveRequests', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                operation: 'GET',
+                table_name: 'LeaveRequests',
+                key: { request_id: requestId }
+            })
+        });
+        const data = await response.json();
+        displayApiResponse(data);
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+
+
+        // Update Leave Request
+        document.getElementById('updateLeaveRequestButton').addEventListener('click', async function () {
+            const requestId = document.getElementById('updateLeaveRequestId').value;
+            const updatedLeaveRequest = { status: document.getElementById('updateLeaveStatus').value };
+            try {
+                const response = await fetch('https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/LeaveRequests', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'PUT',
+                        table_name: 'LeaveRequests',
+                        key: { request_id: requestId },
+                        updates: updatedLeaveRequest
+                    })
+                });
+                const data = await response.json();
+                displayApiResponse(data);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+
+        // Delete Leave Request
+        document.getElementById('deleteLeaveRequestButton').addEventListener('click', async function () {
+            const requestId = document.getElementById('deleteLeaveRequestId').value;
+            try {
+                const response = await fetch('https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/LeaveRequests', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        operation: 'DELETE',
+                        table_name: 'LeaveRequests',
+                        key: { request_id: requestId }
+                    })
+                });
+                const data = await response.json();
+                displayApiResponse(data);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+
+        // Check if user is authenticated
+        const authToken = sessionStorage.getItem('authToken');
+        if (!authToken) {
+            alert("Please login to access the dashboard.");
+            window.location.href = 'index.html';
+        }
+    </script>
+    <script src="auth.js"></script>
+</body>
+</html>

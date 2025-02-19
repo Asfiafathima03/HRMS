@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS - Performance</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7fc;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        h2, h3 {
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"], input[type="number"], button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        input[type="text"], input[type="number"] {
+            background-color: #f9f9f9;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f1f1f1;
+            color: #555;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .logout-btn {
+            display: block;
+            width: 200px;
+            margin: 30px auto;
+            padding: 12px;
+            background-color: #e74c3c;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Performance Management</h2>
+
+        <!-- Add New Performance Form -->
+        <h3>Add New Performance</h3>
+        <form id="addPerformanceForm">
+            <div class="form-group">
+                <input type="text" id="performanceId" placeholder="Performance ID" required>
+            </div>
+            <div class="form-group">
+                <input type="text" id="employeeId" placeholder="Employee ID" required>
+            </div>
+            <div class="form-group">
+                <input type="number" id="performanceScore" placeholder="Performance Score" required>
+            </div>
+            <button type="submit">Add Performance</button>
+        </form>
+
+        <!-- Get Performance Form -->
+        <h3>Get Performance Details</h3>
+        <div class="form-group">
+            <input type="text" id="getPerformanceId" placeholder="Enter Performance ID">
+        </div>
+        <button onclick="getPerformance()">Get Performance</button>
+
+        <!-- Update Performance Form -->
+        <h3>Update Performance</h3>
+        <div class="form-group">
+            <input type="text" id="updatePerformanceId" placeholder="Performance ID" required>
+        </div>
+        <div class="form-group">
+            <input type="number" id="updatePerformanceScore" placeholder="New Performance Score" required>
+        </div>
+        <button onclick="updatePerformance()">Update Performance</button>
+
+        <!-- Delete Performance Form -->
+        <h3>Delete Performance</h3>
+        <div class="form-group">
+            <input type="text" id="deletePerformanceId" placeholder="Performance ID">
+        </div>
+        <button onclick="deletePerformance()">Delete Performance</button>
+
+        <h3>Performance Records</h3>
+        <table id="performanceTable">
+            <thead>
+                <tr>
+                    <th>Performance ID</th>
+                    <th>Employee ID</th>
+                    <th>Performance Score</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <script>
+        const performanceApiUrl = 'https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/Performance';
+
+        // Add Performance
+        document.getElementById('addPerformanceForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const performance = {
+                operation: 'POST',
+                table_name: 'Performance',
+                body: {
+                    evaluation_id: document.getElementById('performanceId').value,
+                    employee_id: document.getElementById('employeeId').value,
+                    performance_score: parseInt(document.getElementById('performanceScore').value, 10)
+                }
+            };
+
+            try {
+                const response = await fetch('https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/Performance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(performance)
+                });
+                const rawResponse = await response.text();
+                console.log('Raw Response:', rawResponse);
+                alert(`Raw Response: ${rawResponse}`);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+
+        // Get Performance
+        async function getPerformance() {
+            const performanceId = document.getElementById('getPerformanceId').value;
+            const requestBody = {
+                operation: 'GET',
+                table_name: 'Performance',
+                key: { evaluation_id: performanceId }
+            };
+
+            try {
+                const response = await fetch('https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/Performance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+                const rawResponse = await response.text();
+                console.log('Raw Response:', rawResponse);
+                alert(`Raw Response: ${rawResponse}`);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Update Performance
+        async function updatePerformance() {
+            const performanceId = document.getElementById('updatePerformanceId').value;
+            const updatedPerformance = {
+                operation: 'PUT',
+                table_name: 'Performance',
+                key: { evaluation_id: performanceId },
+                updates: {
+                    performance_score: parseInt(document.getElementById('updatePerformanceScore').value, 10)
+                }
+            };
+
+            try {
+                const response = await fetch('https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/Performance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedPerformance)
+                });
+                const rawResponse = await response.text();
+                console.log('Raw Response:', rawResponse);
+                alert(`Raw Response: ${rawResponse}`);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Delete Performance
+        async function deletePerformance() {
+            const performanceId = document.getElementById('deletePerformanceId').value;
+            const requestBody = {
+                operation: 'DELETE',
+                table_name: 'Performance',
+                key: { evaluation_id: performanceId }
+            };
+
+            try {
+                const response = await fetch('https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/Performance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+                const rawResponse = await response.text();
+                console.log('Raw Response:', rawResponse);
+                alert(`Raw Response: ${rawResponse}`);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Logout function
+        function logout() {
+            sessionStorage.removeItem('authToken');
+            window.location.href = 'logged_out.html';
+        }
+    </script>
+    <script src="auth.js"></script>
+</body>
+</html>

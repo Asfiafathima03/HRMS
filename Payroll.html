@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRMS - Payroll</title>
+    <style>
+        /* Styling remains unchanged */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        h2, h3 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        input[type="text"], input[type="number"], button {
+            padding: 12px;
+            font-size: 14px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            outline: none;
+        }
+        input[type="text"]:focus, input[type="number"]:focus {
+            border-color: #3498db;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .logout-btn {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            padding: 12px;
+            background-color: #e74c3c;
+            color: white;
+            font-size: 16px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #e7f1ff;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            overflow: auto;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Payroll Management</h2>
+
+        <!-- Add New Payroll Form -->
+        <h3>Add New Payroll</h3>
+        <form id="addPayrollForm">
+            <input type="text" id="payrollId" placeholder="Payroll ID" required>
+            <input type="text" id="employeeId" placeholder="Employee ID" required>
+            <input type="number" id="salary" placeholder="Salary" required>
+            <button type="submit">Add Payroll</button>
+        </form>
+
+        <!-- Get Payroll Form -->
+        <h3>Get Payroll Details</h3>
+        <input type="text" id="getPayrollId" placeholder="Enter Payroll ID">
+        <button onclick="getPayroll()">Get Payroll</button>
+
+        <!-- Update Payroll Form -->
+        <h3>Update Payroll</h3>
+        <input type="text" id="updatePayrollId" placeholder="Payroll ID" required>
+        <input type="number" id="updateSalary" placeholder="New Salary" required>
+        <button onclick="updatePayroll()">Update Payroll</button>
+
+        <!-- Delete Payroll Form -->
+        <h3>Delete Payroll</h3>
+        <input type="text" id="deletePayrollId" placeholder="Payroll ID">
+        <button onclick="deletePayroll()">Delete Payroll</button>
+
+        <h3>Payroll Records</h3>
+        <table id="payrollTable">
+            <thead>
+                <tr>
+                    <th>Payroll ID</th>
+                    <th>Employee ID</th>
+                    <th>Salary</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <h3>API Response</h3>
+        <pre id="apiResponse">Response will appear here...</pre>
+
+        <!-- Logout Button -->
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <script>
+        const payrollApiUrl = 'https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/Payroll';
+
+        const displayApiResponse = (response) => {
+            document.getElementById('apiResponse').textContent = JSON.stringify(response, null, 2);
+        };
+
+        // Add Payroll
+        document.getElementById('addPayrollForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const payroll = {
+                payroll_id: document.getElementById('payrollId').value,
+                employee_id: document.getElementById('employeeId').value,
+                salary: document.getElementById('salary').value
+            };
+
+            try {
+                const response = await fetch('https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/Payroll', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation: 'POST', table_name: 'Payroll', body: payroll })
+                });
+                const data = await response.json();
+                displayApiResponse(data);
+                alert(data.message);
+            } catch (error) {
+                console.error('Error:', error);
+                displayApiResponse({ error: error.message });
+                alert('Failed to add payroll record.');
+            }
+        });
+
+        // Get Payroll
+async function getPayroll() {
+    const payrollId = document.getElementById('getPayrollId').value;
+
+    const requestBody = {
+        operation: 'GET',
+        table_name: 'Payroll',
+        key: { payroll_id: payrollId }
+    };
+
+    try {
+        const response = await fetch('https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/Payroll', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
+
+        const rawResponse = await response.text();
+        console.log('Raw Response:', rawResponse);
+        alert(`Raw Response: ${rawResponse}`);
+
+        const data = JSON.parse(rawResponse);
+
+        
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to retrieve payroll record.');
+    }
+}
+
+
+        // Update Payroll
+        async function updatePayroll() {
+            const payrollId = document.getElementById('updatePayrollId').value;
+            const updatedPayroll = {
+                salary: document.getElementById('updateSalary').value
+            };
+
+            try {
+                const response = await fetch('https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/Payroll', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation: 'PUT', table_name: 'Payroll', key: { payroll_id: payrollId }, updates: updatedPayroll })
+                });
+                const data = await response.json();
+                displayApiResponse(data);
+                alert(data.message);
+            } catch (error) {
+                console.error('Error:', error);
+                displayApiResponse({ error: error.message });
+                alert('Failed to update payroll record.');
+            }
+        }
+
+        // Delete Payroll
+        async function deletePayroll() {
+            const payrollId = document.getElementById('deletePayrollId').value;
+
+            try {
+                const response = await fetch('https://ab6m1gd3ya.execute-api.ap-south-1.amazonaws.com/dev/table/Payroll', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operation: 'DELETE', table_name: 'Payroll', key: { payroll_id: payrollId } })
+                });
+                const data = await response.json();
+                displayApiResponse(data);
+                alert(data.message);
+            } catch (error) {
+                console.error('Error:', error);
+                displayApiResponse({ error: error.message });
+                alert('Failed to delete payroll record.');
+            }
+        }
+
+        
+    </script>
+    <script src="auth.js"></script>
+</body>
+</html>
